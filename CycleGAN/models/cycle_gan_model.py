@@ -47,6 +47,16 @@ class CycleGANModel(BaseModel):
                 self.load_network(self.netD_A, 'D_A', which_epoch)
                 self.load_network(self.netD_B, 'D_B', which_epoch)
 
+        if self.isTrain and opt.transfer_net:
+            print(opt.transfer_name)
+            which_epoch = opt.which_epoch
+            transfer_dir = os.path.join(opt.checkpoints_dir, opt.transfer_name)
+            self.transfer_network(self.netG_A, 'G_A', which_epoch, transfer_dir)
+            self.transfer_network(self.netG_B, 'G_B', which_epoch, transfer_dir)
+            self.transfer_network(self.netD_A, 'D_A', which_epoch, transfer_dir)
+            self.transfer_network(self.netD_B, 'D_B', which_epoch, transfer_dir)
+
+
         if self.isTrain:
             self.old_lr = opt.lr
             self.fake_A_pool = ImagePool(opt.pool_size)
@@ -56,18 +66,37 @@ class CycleGANModel(BaseModel):
             self.criterionCycle = torch.nn.L1Loss()
             self.criterionIdt = torch.nn.L1Loss()
             # initialize optimizers
-            self.optimizer_G = torch.optim.Adam(itertools.chain(self.netG_A.parameters(), self.netG_B.parameters()),
+            if opt.transfer_net:
+                print('freezing base layers')
+                networks.finetune_G(self.netG_A)
+                networks.finetune_G(self.netG_B)
+                networks.finetune_D(self.netD_A)
+                networks.finetune_D(self.netD_B)
+
+                self.optimizer_G = torch.optim.Adam(itertools.chain(
+                                        filter(lambda p: p.requires_grad, self.netG_A.parameters()), 
+                                        filter(lambda p: p.requires_grad, self.netG_B.parameters())),
                                                 lr=opt.lr, betas=(opt.beta1, 0.999))
-            self.optimizer_D_A = torch.optim.Adam(self.netD_A.parameters(),
+                
+                self.optimizer_D_A = torch.optim.Adam(
+                                        filter(lambda p: p.requires_grad, self.netD_A.parameters()),
+                                        lr=opt.lr, betas=(opt.beta1, 0.999))         
+                self.optimizer_D_B = torch.optim.Adam(
+                                        filter(lambda p: p.requires_grad, self.netD_B.parameters()),
+                                        lr=opt.lr, betas=(opt.beta1, 0.999))
+            else:
+                self.optimizer_G = torch.optim.Adam(itertools.chain(self.netG_A.parameters(), self.netG_B.parameters()),
                                                 lr=opt.lr, betas=(opt.beta1, 0.999))
-            self.optimizer_D_B = torch.optim.Adam(self.netD_B.parameters(),
+                self.optimizer_D_A = torch.optim.Adam(self.netD_A.parameters(),
+                                                lr=opt.lr, betas=(opt.beta1, 0.999))
+                self.optimizer_D_B = torch.optim.Adam(self.netD_B.parameters(),
                                                 lr=opt.lr, betas=(opt.beta1, 0.999))
 
             print('---------- Networks initialized -------------')
-            networks.print_network(self.netG_A)
-            networks.print_network(self.netG_B)
-            networks.print_network(self.netD_A)
-            networks.print_network(self.netD_B)
+            # networks.print_network(self.netG_A)
+            # networks.print_network(self.netG_B)
+            # networks.print_network(self.netD_A)
+            # networks.print_network(self.netD_B)
             print('-----------------------------------------------')
 
     def set_input(self, input):

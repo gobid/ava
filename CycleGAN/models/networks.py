@@ -68,6 +68,30 @@ def define_D(input_nc, ndf, which_model_netD,
     netD.apply(weights_init)
     return netD
 
+def finetune_D(netD):
+    count = 0
+    for param in netD.parameters():
+        count = count + 1
+        if count < 15:
+            param.requires_grad = False
+        else:
+            param.data.normal_(0.0, 0.02) 
+        # print('%d %r' % (count, param.requires_grad))
+        # print(param.size())
+
+def finetune_G(netG):
+    count = 0
+    for param in netG.parameters():
+        count = count + 1
+        if count < 93:
+            param.requires_grad = False
+        #elif count == 91 or count == 92:
+            #param.data.normal_(1.0, 0.02)
+        else:
+            param.data.normal_(0.0, 0.02) 
+
+        print('%d %r' % (count, param.requires_grad))
+        # print(param.size())
 
 def print_network(net):
     num_params = 0
