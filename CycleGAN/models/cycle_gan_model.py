@@ -82,14 +82,17 @@ class CycleGANModel(BaseModel):
         self.real_A = Variable(self.input_A)
         self.real_B = Variable(self.input_B)
 
-    def test(self):
-        self.real_A = Variable(self.input_A, volatile=True)
-        self.fake_B = self.netG_A.forward(self.real_A)
-        self.rec_A = self.netG_B.forward(self.fake_B)
+    def test(self, do_saliency_instead=0):
+        if do_saliency_instead == 0:
+            self.real_A = Variable(self.input_A, volatile=True)
+            self.fake_B = self.netG_A.forward(self.real_A)
+            self.rec_A = self.netG_B.forward(self.fake_B)
 
-        self.real_B = Variable(self.input_B, volatile=True)
-        self.fake_A = self.netG_B.forward(self.real_B)
-        self.rec_B  = self.netG_A.forward(self.fake_A)
+            self.real_B = Variable(self.input_B, volatile=True)
+            self.fake_A = self.netG_B.forward(self.real_B)
+            self.rec_B  = self.netG_A.forward(self.fake_A)
+        else:
+            print('have to produce saliency map')
 
     #get image paths
     def get_image_paths(self):
