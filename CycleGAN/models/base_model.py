@@ -51,5 +51,11 @@ class BaseModel():
         save_path = os.path.join(self.save_dir, save_filename)
         network.load_state_dict(torch.load(save_path))
 
+    # helper transferring function that can be used by subclasses
+    def transfer_network(self, network, network_label, epoch_label, transfer_dir):
+        save_filename = '%s_net_%s.pth' % (epoch_label, network_label)
+        save_path = os.path.join(transfer_dir, save_filename)
+        network.load_state_dict(torch.load(save_path))
+
     def update_learning_rate():
         pass
