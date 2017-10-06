@@ -51,6 +51,8 @@ class BaseOptions():
             if id >= 0:
                 self.opt.gpu_ids.append(id)
 
+
+        print(self.opt.gpu_ids)
         args = vars(self.opt)
 
         print('------------ Options -------------')

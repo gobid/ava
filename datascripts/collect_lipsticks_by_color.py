@@ -5,7 +5,7 @@ from selenium import webdriver
 import time
 import urllib
 import random
-
+import os
 # search terms: 
 # red lipstick on face 
 # pink lipstick on face 
@@ -48,36 +48,37 @@ search_urls = [
 	'https://www.google.com/search?q=purple+lipstick+on+olive+face',
 ]
 
+base_path = '/Users/ssingla/repos/ava/datascripts/data/lipstickcolors/'
 download_locations = [
-	'/Users/govindadasu/Dropbox/ava/CycleGAN/datasets/lipstickcolors/blue/',
-	'/Users/govindadasu/Dropbox/ava/CycleGAN/datasets/lipstickcolors/orange/',
-	'/Users/govindadasu/Dropbox/ava/CycleGAN/datasets/lipstickcolors/pink/',
-	'/Users/govindadasu/Dropbox/ava/CycleGAN/datasets/lipstickcolors/red/',
-	'/Users/govindadasu/Dropbox/ava/CycleGAN/datasets/lipstickcolors/purple/',
+	'blue/',
+	'orange/',
+	'pink/',
+	'red/',
+	'purple/',
 
-	'/Users/govindadasu/Dropbox/ava/CycleGAN/datasets/lipstickcolors/blue/',
-	'/Users/govindadasu/Dropbox/ava/CycleGAN/datasets/lipstickcolors/orange/',
-	'/Users/govindadasu/Dropbox/ava/CycleGAN/datasets/lipstickcolors/pink/',
-	'/Users/govindadasu/Dropbox/ava/CycleGAN/datasets/lipstickcolors/red/',
-	'/Users/govindadasu/Dropbox/ava/CycleGAN/datasets/lipstickcolors/purple/',
+	'blue/',
+	'orange/',
+	'pink/',
+	'red/',
+	'purple/',
 
-	'/Users/govindadasu/Dropbox/ava/CycleGAN/datasets/lipstickcolors/blue/',
-	'/Users/govindadasu/Dropbox/ava/CycleGAN/datasets/lipstickcolors/orange/',
-	'/Users/govindadasu/Dropbox/ava/CycleGAN/datasets/lipstickcolors/pink/',
-	'/Users/govindadasu/Dropbox/ava/CycleGAN/datasets/lipstickcolors/red/',
-	'/Users/govindadasu/Dropbox/ava/CycleGAN/datasets/lipstickcolors/purple/',
+	'blue/',
+	'orange/',
+	'pink/',
+	'red/',
+	'purple/',
 
-	'/Users/govindadasu/Dropbox/ava/CycleGAN/datasets/lipstickcolors/blue/',
-	'/Users/govindadasu/Dropbox/ava/CycleGAN/datasets/lipstickcolors/orange/',
-	'/Users/govindadasu/Dropbox/ava/CycleGAN/datasets/lipstickcolors/pink/',
-	'/Users/govindadasu/Dropbox/ava/CycleGAN/datasets/lipstickcolors/red/',
-	'/Users/govindadasu/Dropbox/ava/CycleGAN/datasets/lipstickcolors/purple/',
+	'blue/',
+	'orange/',
+	'pink/',
+	'red/',
+	'purple/',
 
-	'/Users/govindadasu/Dropbox/ava/CycleGAN/datasets/lipstickcolors/blue/',
-	'/Users/govindadasu/Dropbox/ava/CycleGAN/datasets/lipstickcolors/orange/',
-	'/Users/govindadasu/Dropbox/ava/CycleGAN/datasets/lipstickcolors/pink/',
-	'/Users/govindadasu/Dropbox/ava/CycleGAN/datasets/lipstickcolors/red/',
-	'/Users/govindadasu/Dropbox/ava/CycleGAN/datasets/lipstickcolors/purple/',
+	'blue/',
+	'orange/',
+	'pink/',
+	'red/',
+	'purple/',
 ] # should be same len as search_urls
 
 # thanks https://stackoverflow.com/questions/13343347/randomizing-two-lists-and-maintaining-order-in-python 
@@ -89,7 +90,7 @@ search_urls[:], download_locations[:] = zip(*combined)
 
 for i in range(len(search_urls)):
 	search_url = search_urls[i]
-	download_location = download_locations[i]
+	download_location = base_path + download_locations[i]
 	d.get(search_url)
 	# scroll down for some time
 	images = d.find_element_by_link_text('Images')
@@ -103,20 +104,24 @@ for i in range(len(search_urls)):
 	images_arr = images_block.find_elements_by_class_name('rg_di')
 	#print('images_arr: ', images_arr)
 	links = set()
-	print 'going to scrape ', len(images_arr), 'images' 
+	print 'going to scrape ', len(images_arr), 'images'
+
+	if not os.path.exists(download_location):
+		os.mkdir(download_location)
+
 	for j, image in enumerate(images_arr):
-		try: 
-			image.click()
-			time.sleep(4)
-			potential_links = d.find_elements_by_class_name('irc_mi')
-			#print('potential_links: ', potential_links)
-			for potential_link in potential_links:
-				potential_link_url = potential_link.get_attribute('src')
-				if potential_link_url and potential_link_url not in links: 
-					links.add(potential_link_url)
-					print 'added link: ', potential_link.get_attribute('src')
-					urllib.urlretrieve(potential_link_url, download_location + potential_link_url.split('/')[-1])
-					time.sleep(2)
-		except:
-			print 'encountered a failure on a part img'
+		# try:
+		image.click()
+		time.sleep(4)
+		potential_links = d.find_elements_by_class_name('irc_mi')
+		#print('potential_links: ', potential_links)
+		for potential_link in potential_links:
+			potential_link_url = potential_link.get_attribute('src')
+			if potential_link_url and potential_link_url not in links:
+				links.add(potential_link_url)
+				print 'added link: ', potential_link.get_attribute('src')
+				urllib.urlretrieve(potential_link_url, download_location + potential_link_url.split('/')[-1])
+				time.sleep(2)
+	# except:
+		# 	print 'encountered a failure on a part img'
 
